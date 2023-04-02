@@ -7,11 +7,11 @@ class SpeechRecognizerGUI:
         self.root.resizable(False, False)
         self.root.title("Speech Recognizer")
 
-        # Create the microphone button
+        
         self.mic_button = tk.Button(text="🎤", font=("Arial", 60), command=self.start_listening)
         self.mic_button.pack()
 
-        # Create the text box
+        
         self.text_box = tk.Text(width=50, height=10, font=("Arial", 12))
         self.text_box.pack()
 
@@ -31,9 +31,8 @@ class SpeechRecognizerGUI:
                 self.text_box.insert(tk.END, recognized_text)
             except Exception as e:
                 self.text_box.delete("1.0", tk.END)
-                self.text_box.insert(tk.END, f"Error: {str(e)}")
+                self.text_box.insert(tk.END, f"Reapet: {str(e)}")
 
 if __name__ == "__main__":
     app = SpeechRecognizerGUI()
     app.root.mainloop()
-
