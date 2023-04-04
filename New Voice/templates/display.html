@@ -1,0 +1,67 @@
+
+{% block content%}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Transcribe Audio</title>
+</head>
+<body>
+	<form id="audio-form">
+		<input type="hidden" id="audio-data" name="audio_data">
+		<button type="submit">Submit</button>
+	</form>
+
+	<script>
+		
+		navigator.mediaDevices.getUserMedia({ audio: true })
+		.then(function(stream) {
+			
+			var mediaRecorder = new MediaRecorder(stream);
+
+			
+			var chunks = [];
+
+		
+			mediaRecorder.addEventListener('dataavailable', function(event) {
+				chunks.push(event.data);
+			});
+
+			mediaRecorder.addEventListener('stop', function() {
+				
+				var audioBlob = new Blob(chunks, { type: 'audio/wav' });
+
+				
+				var reader = new FileReader();
+				reader.readAsDataURL(audioBlob);
+				reader.onloadend = function() {
+					var base64data = reader.result.split(',')[1];
+
+				
+					document.getElementById('audio-data').value = base64data;
+
+					
+					document.getElementById('audio-form').submit();
+				}
+			});
+
+			
+			document.querySelector('button').addEventListener('click', function() {
+				mediaRecorder.start();
+			});
+
+			// stop recording after 5 seconds
+			setTimeout(function() {
+				mediaRecorder.stop();
+			}, 5000);
+		})
+		.catch(function(error) {
+			console.log(error);
+		});
+
+	</script>
+</body>
+</html>
+
+
+{% endblock content%}
+
