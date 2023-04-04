@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from google.cloud import speech
 from google.oauth2 import service_account
-
+from .models import Transcription
 
 def transcribe_audio(request):
     if request.method == 'POST':
@@ -34,6 +34,9 @@ def transcribe_audio(request):
                 end_time = word.end_time.total_seconds()
                 word_text = word.word
                 results.append((start_time, end_time, word_text))
+
+        transcription = Transcription(text=transcript)
+        transcription.save()
 
         data = {'transcription': transcript, 'word_timings': results}
         return JsonResponse(data)
