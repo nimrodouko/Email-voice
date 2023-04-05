@@ -6,56 +6,72 @@
 	<title>Transcribe Audio</title>
 </head>
 <body>
+	<button id="start-button">Start Recording</button>
 	<form id="audio-form">
 		<input type="hidden" id="audio-data" name="audio_data">
+		<textarea rows="4" cols="50">
+			{% for transcription in transcriptions %}
+    			<h3>Transcription {{ transcription.transcription}}</h3>
+    			<p>{{ transcription.text }}</p>
+			{% endfor %}
+
+		</textarea>
+			
 		<button type="submit">Submit</button>
 	</form>
 
+	
+
 	<script>
-		
-		navigator.mediaDevices.getUserMedia({ audio: true })
-		.then(function(stream) {
-			
-			var mediaRecorder = new MediaRecorder(stream);
+		var startButton = document.getElementById('start-button');
 
-			
-			var chunks = [];
+		// get the audio stream from the microphone when the start button is clicked
+		startButton.addEventListener('click', function() {
+			navigator.mediaDevices.getUserMedia({ audio: true })
+			.then(function(stream) {
+				// create a new MediaRecorder object
+				var mediaRecorder = new MediaRecorder(stream);
 
-		
-			mediaRecorder.addEventListener('dataavailable', function(event) {
-				chunks.push(event.data);
-			});
+				// create an empty buffer to store the audio data
+				var chunks = [];
 
-			mediaRecorder.addEventListener('stop', function() {
-				
-				var audioBlob = new Blob(chunks, { type: 'audio/wav' });
+				// add event listeners to handle the dataavailable and stop events
+				mediaRecorder.addEventListener('dataavailable', function(event) {
+					chunks.push(event.data);
+				});
 
-				
-				var reader = new FileReader();
-				reader.readAsDataURL(audioBlob);
-				reader.onloadend = function() {
-					var base64data = reader.result.split(',')[1];
+				mediaRecorder.addEventListener('stop', function() {
+					// combine all the audio data into a single Blob object
+					var audioBlob = new Blob(chunks, { type: 'audio/wav' });
 
-				
-					document.getElementById('audio-data').value = base64data;
+					// convert the audio data to base64 string
+					var reader = new FileReader();
+					reader.readAsDataURL(audioBlob);
+					reader.onloadend = function() {
+						var base64data = reader.result.split(',')[1];
 
-					
-					document.getElementById('audio-form').submit();
-				}
-			});
+						// set the base64 string as the value of the hidden input field
+						document.getElementById('audio-data').value = base64data;
 
-			
-			document.querySelector('button').addEventListener('click', function() {
+						// submit the form
+						document.getElementById('audio-form').submit();
+					}
+				});
+
+				// start recording
 				mediaRecorder.start();
+
+				// stop recording after 10 minutes
+				setTimeout(function() {
+					mediaRecorder.stop();
+					startButton.disabled = false;
+				}, 600000); // 10 minutes in milliseconds
+			})
+			.catch(function(error) {
+				console.log(error);
 			});
 
-			// stop recording after 5 seconds
-			setTimeout(function() {
-				mediaRecorder.stop();
-			}, 5000);
-		})
-		.catch(function(error) {
-			console.log(error);
+			startButton.disabled = true;
 		});
 
 	</script>

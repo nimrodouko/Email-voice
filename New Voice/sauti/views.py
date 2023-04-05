@@ -44,4 +44,6 @@ def transcribe_audio(request):
         return HttpResponseNotAllowed(['POST'])
 
 def home(request):
-    return render(request,'display.html')
+    if request.method == 'GET':
+        transcription = Transcription.objects.all()
+    return render(request,'display.html', {'transcription':transcription})
