@@ -8,7 +8,7 @@ from .models import Transcription
 
 def transcribe_audio(request):
     if request.method == 'POST':
-        credentials = service_account.Credentials.from_service_account_file('key.json')
+        credentials = service_account.Credentials.from_service_account_file('joy.json')
         client = speech.SpeechClient(credentials=credentials)
 
         data = json.loads(request.body)
@@ -36,7 +36,9 @@ def transcribe_audio(request):
                 results.append((start_time, end_time, word_text))
 
         transcription = Transcription(text=transcript)
+        print(transcription)
         transcription.save()
+        print("Transcription saved succesfully")
 
         data = {'transcription': transcript, 'word_timings': results}
         return JsonResponse(data)

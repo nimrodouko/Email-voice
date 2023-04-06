@@ -6,8 +6,9 @@
 	<title>Transcribe Audio</title>
 </head>
 <body>
-	<button id="start-button">Start Recording</button>
-	<form id="audio-form">
+	<button id="start-button">Record</button>
+	<form id="audio-form" method="POST">
+		{% csrf_token %}
 		<input type="hidden" id="audio-data" name="audio_data">
 		<textarea rows="4" cols="50">
 			{% for transcription in transcriptions %}
