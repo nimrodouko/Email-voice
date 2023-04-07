@@ -6,20 +6,19 @@
 	<title>Transcribe Audio</title>
 </head>
 <body>
-	<button id="start-button">Record</button>
+	
 	<form id="audio-form" method="POST">
-		{% csrf_token %}
+		
+		
+		<button id="start-button">Record</button>
 		<input type="hidden" id="audio-data" name="audio_data">
-		<textarea rows="4" cols="50">
-			{% for transcription in transcriptions %}
-    			<h3>Transcription {{ transcription.transcription}}</h3>
-    			<p>{{ transcription.text }}</p>
-			{% endfor %}
-
-		</textarea>
+		
 			
 		<button type="submit">Submit</button>
 	</form>
+	<div id="transcription"></div>
+
+
 
 	
 
@@ -74,6 +73,29 @@
 
 			startButton.disabled = true;
 		});
+
+		//transcribe
+		
+    var audioForm = document.getElementById('audio-form');
+    audioForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        var audioData = document.getElementById('audio-data').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/transcribe-audio/');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                var transcription = data['transcription'];
+                document.getElementById('transcription').innerHTML = transcription;
+            } else {
+                console.log('Request failed.  Returned status of ' + xhr.status);
+            }
+        };
+        xhr.send(JSON.stringify({ audio_data: audioData }));
+    });
+
+
 
 	</script>
 </body>

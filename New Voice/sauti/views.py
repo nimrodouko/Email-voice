@@ -1,14 +1,19 @@
+from django.shortcuts import render
 import io
 import json
-from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
+from django.http import JsonResponse, HttpResponseNotAllowed
 from google.cloud import speech
 from google.oauth2 import service_account
+from django.views.decorators.csrf import csrf_exempt
 from .models import Transcription
 
+
+
+
+@csrf_exempt
 def transcribe_audio(request):
     if request.method == 'POST':
-        credentials = service_account.Credentials.from_service_account_file('joy.json')
+        credentials = service_account.Credentials.from_service_account_file('friday.json')
         client = speech.SpeechClient(credentials=credentials)
 
         data = json.loads(request.body)
@@ -36,16 +41,15 @@ def transcribe_audio(request):
                 results.append((start_time, end_time, word_text))
 
         transcription = Transcription(text=transcript)
-        print(transcription)
+        
         transcription.save()
-        print("Transcription saved succesfully")
+        
 
         data = {'transcription': transcript, 'word_timings': results}
         return JsonResponse(data)
     else:
         return HttpResponseNotAllowed(['POST'])
 
-def home(request):
-    if request.method == 'GET':
-        transcription = Transcription.objects.all()
-    return render(request,'display.html', {'transcription':transcription})
+def display_result(request):
+    
+    return render(request, 'display.html')
