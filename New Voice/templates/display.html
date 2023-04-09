@@ -1,5 +1,5 @@
 
-{% block content%}
+
 <!DOCTYPE html>
 <html>
 	
@@ -12,22 +12,23 @@
 
 	<title>Send Email</title>
 </head>
+{% block content%}
 <body>
+
 	<div class="containerfluid">
 		<h1>SEND EMAIL</h1>
 		<form id="audio-form" method="POST">
 			<div class="form-group">
 				<label for="to">To:</label>
-				<input type="email" class="form-control" id="to" placeholder="Enter email">
+				<input type="email" class="form-control" id="to" name="to_email" placeholder="Enter email">
 			</div>
-			<div class="form-group">
-				<label for="subject">Subject:</label>
-				<input type="text" class="form-control" id="subject" placeholder="Enter subject">
-			</div>
+			
 			<div class="form-group">
 				<label for="body"><button id="start-button">Record</button></label>
 				<input type="hidden" id="audio-data" name="audio_data">
-				<textarea class="form-control" rows="10" id="body" placeholder="Enter email body"></textarea>
+				<textarea class="form-control" rows="10" id="email-body" placeholder="Enter email body"name="content"></textarea>
+				<textarea class="form-control" rows="10" id="transcription-text" placeholder="Transcribed text" name="transcription"></textarea>
+				
 			</div>
 		
 		
@@ -86,11 +87,11 @@
 				// start recording
 				mediaRecorder.start();
 
-				// stop recording after 10 minutes
+				// stop recording after 2 minutes
 				setTimeout(function() {
 					mediaRecorder.stop();
 					startButton.disabled = false;
-				}, 600000); // 10 minutes in milliseconds
+				}, 120000); // 2 minutes in milliseconds
 			})
 			.catch(function(error) {
 				console.log(error);
@@ -112,7 +113,7 @@
             if (xhr.status === 200) {
                 var data = JSON.parse(xhr.responseText);
                 var transcription = data['transcription'];
-                document.getElementById('transcription').innerHTML = transcription;
+                document.getElementById('email-body').value = transcription;
             } else {
                 console.log('Request failed.  Returned status of ' + xhr.status);
             }
@@ -124,8 +125,9 @@
 
 	</script>
 </body>
+{% endblock content%}
 </html>
 
 
-{% endblock content%}
+
 

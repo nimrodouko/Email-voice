@@ -1,11 +1,13 @@
-from django.shortcuts import render
+
 import io
 import json
+import requests
+from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseNotAllowed
 from google.cloud import speech
 from google.oauth2 import service_account
 from django.views.decorators.csrf import csrf_exempt
-from .models import Transcription
+
 
 
 
@@ -53,3 +55,31 @@ def transcribe_audio(request):
 def display_result(request):
     
     return render(request, 'display.html')
+
+
+
+def send_email(request):
+    if request.method == 'POST':
+        
+        to_email = request.POST.get('to_email')
+        content = request.POST.get('content')
+        
+        
+        mail = requests.post('https://open-email-delivery.onrender.com/send', json={
+            "mailfrom": "oukonimrod@gmail.com",
+            "mailto": to_email,
+            
+            "message": content
+        })
+        
+        
+        return JsonResponse({
+            'status_code': mail.status_code,
+            'response': mail.json()
+        })
+    else:
+        
+        return JsonResponse({
+            'status_code': 405,
+            'response': 'Method Not Allowed'
+        })
