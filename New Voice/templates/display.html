@@ -25,107 +25,78 @@
 			
 			<div class="form-group">
 				<label for="body"><button id="start-button">Record</button></label>
+				<label for="body"><button id="stop-button">stop</button></label>
 				<input type="hidden" id="audio-data" name="audio_data">
-				<textarea class="form-control" rows="10" id="email-body" placeholder="Enter email body"name="content"></textarea>
+				
 				<textarea class="form-control" rows="10" id="transcription-text" placeholder="Transcribed text" name="transcription"></textarea>
 				
 			</div>
-		
-		
-			
-			
-			
-				
-			<button type="submit">Send</button>
+			<button type="submit" id="send-button">Send</button>
 		</form>
-		<div id="transcription"></div>
-	
-
-	</div>
-	
-	
-
-
-	
-
-	<script>
-		var startButton = document.getElementById('start-button');
-
-		// get the audio stream from the microphone when the start button is clicked
-		startButton.addEventListener('click', function() {
-			navigator.mediaDevices.getUserMedia({ audio: true })
-			.then(function(stream) {
-				// create a new MediaRecorder object
-				var mediaRecorder = new MediaRecorder(stream);
-
-				// create an empty buffer to store the audio data
-				var chunks = [];
-
-				// add event listeners to handle the dataavailable and stop events
-				mediaRecorder.addEventListener('dataavailable', function(event) {
-					chunks.push(event.data);
-				});
-
-				mediaRecorder.addEventListener('stop', function() {
-					// combine all the audio data into a single Blob object
-					var audioBlob = new Blob(chunks, { type: 'audio/wav' });
-
-					// convert the audio data to base64 string
-					var reader = new FileReader();
-					reader.readAsDataURL(audioBlob);
-					reader.onloadend = function() {
-						var base64data = reader.result.split(',')[1];
-
-						// set the base64 string as the value of the hidden input field
-						document.getElementById('audio-data').value = base64data;
-
-						// submit the form
-						document.getElementById('audio-form').submit();
-					}
-				});
-
-				// start recording
-				mediaRecorder.start();
-
-				// stop recording after 2 minutes
-				setTimeout(function() {
-					mediaRecorder.stop();
-					startButton.disabled = false;
-				}, 120000); // 2 minutes in milliseconds
-			})
-			.catch(function(error) {
-				console.log(error);
-			});
-
-			startButton.disabled = true;
-		});
-
-		//transcribe
-		
-    var audioForm = document.getElementById('audio-form');
-    audioForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        var audioData = document.getElementById('audio-data').value;
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/transcribe-audio/');
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                var data = JSON.parse(xhr.responseText);
-                var transcription = data['transcription'];
-                document.getElementById('email-body').value = transcription;
-            } else {
-                console.log('Request failed.  Returned status of ' + xhr.status);
-            }
-        };
-        xhr.send(JSON.stringify({ audio_data: audioData }));
-    });
-
-
-
-	</script>
+		</div>
 </body>
 {% endblock content%}
+<script>
+	const startButton = document.querySelector('#start-button');
+const stopButton = document.querySelector('#stop-button');
+let mediaRecorder;
+let audioChunks = [];
+
+navigator.mediaDevices.getUserMedia({ audio: true })
+  .then(function(stream) {
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.addEventListener("dataavailable", function(event) {
+      audioChunks.push(event.data);
+    });
+  });
+
+startButton.addEventListener('click', function() {
+  audioChunks = [];
+  mediaRecorder.start();
+});
+
+stopButton.addEventListener('click', function() {
+  mediaRecorder.stop();
+});
+const audioForm = document.querySelector('#audio-form');
+const audioDataInput = document.querySelector('#audio-data');
+
+audioForm.addEventListener('submit', function(event) {
+  event.preventDefault();
+  const formData = new FormData(audioForm);
+  formData.set('audio_data', new Blob(audioChunks, { type: 'audio/webm' }));
+  fetch('/transcribe-audio/', {
+    method: 'POST',
+    body: formData,
+  }).then(function(response) {
+    return response.json();
+  }).then(function(data) {
+    const transcriptionText = document.querySelector('#transcription-text');
+    transcriptionText.value = data.transcription;
+  });
+});
+
+const sendButton = document.querySelector('#send-button');
+
+sendButton.addEventListener('click', function() {
+  const toEmailInput = document.querySelector('#to');
+  const contentInput = document.querySelector('#transcription-text');
+  const formData = new FormData();
+  formData.set('to_email', toEmailInput.value);
+  formData.set('transcription', contentInput.value);
+  fetch('/send-email/', {
+    method: 'POST',
+    body: formData,
+  }).then(function(response) {
+    return response.json();
+  }).then(function(data) {
+    console.log(data);
+  });
+});
+
+
+
+</script>
 </html>
 
 

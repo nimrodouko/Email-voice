@@ -42,9 +42,7 @@ def transcribe_audio(request):
                 word_text = word.word
                 results.append((start_time, end_time, word_text))
 
-        transcription = Transcription(text=transcript)
         
-        transcription.save()
         
 
         data = {'transcription': transcript, 'word_timings': results}
@@ -62,7 +60,7 @@ def send_email(request):
     if request.method == 'POST':
         
         to_email = request.POST.get('to_email')
-        content = request.POST.get('content')
+        content = request.POST.get('transcription')
         
         
         mail = requests.post('https://open-email-delivery.onrender.com/send', json={
