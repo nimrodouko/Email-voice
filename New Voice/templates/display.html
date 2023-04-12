@@ -15,88 +15,81 @@
 {% block content%}
 <body>
 
-	<div class="containerfluid">
-		<h1>SEND EMAIL</h1>
-		<form id="audio-form" method="POST">
-			<div class="form-group">
-				<label for="to">To:</label>
-				<input type="email" class="form-control" id="to" name="to_email" placeholder="Enter email">
-			</div>
-			
-			<div class="form-group">
-				<label for="body"><button id="start-button">Record</button></label>
-				<label for="body"><button id="stop-button">stop</button></label>
-				<input type="hidden" id="audio-data" name="audio_data">
-				
-				<textarea class="form-control" rows="10" id="transcription-text" placeholder="Transcribed text" name="transcription"></textarea>
-				
-			</div>
-			<button type="submit" id="send-button">Send</button>
-		</form>
-		</div>
-</body>
-{% endblock content%}
-<script>
-	const startButton = document.querySelector('#start-button');
-const stopButton = document.querySelector('#stop-button');
-let mediaRecorder;
-let audioChunks = [];
-
-navigator.mediaDevices.getUserMedia({ audio: true })
-  .then(function(stream) {
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.addEventListener("dataavailable", function(event) {
-      audioChunks.push(event.data);
+	<div class="container-fluid">
+    <h1>SEND EMAIL</h1>
+    <form id="audio-form" method="POST" action="{% url 'mail' %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="to">To:</label>
+        <input type="email" class="form-control" id="to" name="to_email" placeholder="Enter email">
+      </div>
+      <div class="form-group">
+        <button id="record-button" type="button">Record</button>
+        <button id="stop-button" type="button" disabled>Stop</button>
+        <input type="hidden" id="audio-data" name="audio_data">
+        <textarea class="form-control" rows="10" id="transcription-text" placeholder="Transcribed text" name="transcription">{{transcription}}</textarea>
+      </div>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  
+  <script>
+  const recordButton = document.getElementById("record-button");
+  const stopButton = document.getElementById("stop-button");
+  const audioDataInput = document.getElementById("audio-data");
+  const transcriptionInput = document.getElementById("transcription-text");
+  
+  let mediaRecorder;
+  let audioChunks = [];
+  
+  recordButton.addEventListener("click", startRecording);
+  stopButton.addEventListener("click", stopRecording);
+  
+  function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(function(stream) {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.addEventListener("dataavailable", function(event) {
+          audioChunks.push(event.data);
+        });
+        mediaRecorder.start();
+        recordButton.disabled = true;
+        stopButton.disabled = false;
+      });
+  }
+  
+  function stopRecording() {
+    mediaRecorder.stop();
+    recordButton.disabled = false;
+    stopButton.disabled = true;
+    const audioBlob = new Blob(audioChunks);
+    audioChunks = [];
+  
+    const formData = new FormData();
+    formData.append("audio_data", audioBlob);
+    fetch("{% url 'transcribe_audio' %}", {
+      method: "POST",
+      body: formData,
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+    })
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(data) {
+      audioDataInput.value = JSON.stringify(data);
+      transcriptionInput.value = data.transcription;
     });
-  });
+  }
+  </script>
+</body>
 
-startButton.addEventListener('click', function() {
-  audioChunks = [];
-  mediaRecorder.start();
-});
-
-stopButton.addEventListener('click', function() {
-  mediaRecorder.stop();
-});
-const audioForm = document.querySelector('#audio-form');
-const audioDataInput = document.querySelector('#audio-data');
-
-audioForm.addEventListener('submit', function(event) {
-  event.preventDefault();
-  const formData = new FormData(audioForm);
-  formData.set('audio_data', new Blob(audioChunks, { type: 'audio/webm' }));
-  fetch('/transcribe-audio/', {
-    method: 'POST',
-    body: formData,
-  }).then(function(response) {
-    return response.json();
-  }).then(function(data) {
-    const transcriptionText = document.querySelector('#transcription-text');
-    transcriptionText.value = data.transcription;
-  });
-});
-
-const sendButton = document.querySelector('#send-button');
-
-sendButton.addEventListener('click', function() {
-  const toEmailInput = document.querySelector('#to');
-  const contentInput = document.querySelector('#transcription-text');
-  const formData = new FormData();
-  formData.set('to_email', toEmailInput.value);
-  formData.set('transcription', contentInput.value);
-  fetch('/send-email/', {
-    method: 'POST',
-    body: formData,
-  }).then(function(response) {
-    return response.json();
-  }).then(function(data) {
-    console.log(data);
-  });
-});
+{% endblock content%}
 
 
 
-</script>
+
 </html>
 
 
