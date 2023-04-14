@@ -16,13 +16,13 @@
 <body>
 
 	<div class="container-fluid">
-    <form action="" method="post">
-      {% csrf_token %}
+    
+      
       <button id="record-button">Record</button>
       <input type="hidden" id="audio-data" name="audio_data">
       <button id="stop-button" type="submit">Stop</button>
       
-    </form>
+    
     <h1>SEND EMAIL</h1>
     <form id="audio-form" method="POST" action="{% url 'mail' %}">
       {% csrf_token %}
@@ -32,7 +32,7 @@
       </div>
       <div class="form-group">
        
-        
+        <label for="transcription-text">Transcription:</label>
         <textarea class="form-control" rows="10" id="transcription-text" placeholder="Transcribed text" name="transcription">{{transcription}}</textarea>
       </div>
       <button type="submit">Send</button>
@@ -45,14 +45,18 @@
   // get the Record button element
 const recordButton = document.getElementById('record-button');
 
-// get the audio data input element
-const audioDataInput = document.getElementById('audio-data');
+  // get the Stop button element
+  const stopButton = document.getElementById('stop-button');
+  // get the transcription text area element
+  const transcriptionText = document.getElementById('transcription-text');
 
-// create a new audio context
+  // create a new audio context
 const audioContext = new AudioContext();
 
 // create a new media stream source node
 let sourceNode;
+// create a new recorder node
+let recorder;
 
 // add a click event listener to the Record button
 recordButton.addEventListener('click', async () => {
@@ -82,26 +86,33 @@ document.getElementById('stop-button').addEventListener('click', () => {
   // stop recording
   recorder.stop();
 
-  // enable the Record button and disable the Stop button
-  recordButton.disabled = false;
-  document.getElementById('stop-button').disabled = true;
+   // enable the Record button and disable the Stop button
+   recordButton.disabled = false;
+    stopButton.disabled = true;
 
   // export the recorded audio data as a Blob
-  recorder.exportWAV((blob) => {
-    // create a new file reader
-    const reader = new FileReader();
+  recorder.exportWAV(async (blob) => {
+      // create a new FormData object and add the audio data to it
+      const formData = new FormData();
+      formData.append('audio_data', blob);
 
-    // add a load event listener to the file reader
-    reader.addEventListener('load', () => {
-      // set the audio data input element's value to the base64-encoded audio data
-      audioDataInput.value = reader.result.split(',')[1];
+
+      try {
+        // make an HTTP POST request to the server to transcribe the audio data
+        const response = await fetch('/transcribe_audio/', {
+          method: 'POST',
+          body: formData,
+        });
+         // get the transcription data from the response
+         const data = await response.json();
+
+     // update the transcription text area with the transcribed text
+     transcriptionText.value = data.transcription;
+      } catch (err) {
+        console.error('Error transcribing audio:', err);
+      }
     });
-
-    // read the Blob as a data URL
-    reader.readAsDataURL(blob);
   });
-});
-
 </script>
 
 
