@@ -16,6 +16,13 @@
 <body>
 
 	<div class="container-fluid">
+    <form action="" method="post">
+      {% csrf_token %}
+      <button id="record-button">Record</button>
+      <input type="hidden" id="audio-data" name="audio_data">
+      <button id="stop-button" type="submit">Stop</button>
+      
+    </form>
     <h1>SEND EMAIL</h1>
     <form id="audio-form" method="POST" action="{% url 'mail' %}">
       {% csrf_token %}
@@ -24,66 +31,79 @@
         <input type="email" class="form-control" id="to" name="to_email" placeholder="Enter email">
       </div>
       <div class="form-group">
-        <button id="record-button" type="button">Record</button>
-        <button id="stop-button" type="button" disabled>Stop</button>
-        <input type="hidden" id="audio-data" name="audio_data">
+       
+        
         <textarea class="form-control" rows="10" id="transcription-text" placeholder="Transcribed text" name="transcription">{{transcription}}</textarea>
       </div>
       <button type="submit">Send</button>
     </form>
   </div>
   
-  <script>
-  const recordButton = document.getElementById("record-button");
-  const stopButton = document.getElementById("stop-button");
-  const audioDataInput = document.getElementById("audio-data");
-  const transcriptionInput = document.getElementById("transcription-text");
-  
-  let mediaRecorder;
-  let audioChunks = [];
-  
-  recordButton.addEventListener("click", startRecording);
-  stopButton.addEventListener("click", stopRecording);
-  
-  function startRecording() {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(function(stream) {
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.addEventListener("dataavailable", function(event) {
-          audioChunks.push(event.data);
-        });
-        mediaRecorder.start();
-        recordButton.disabled = true;
-        stopButton.disabled = false;
-      });
-  }
-  
-  function stopRecording() {
-    mediaRecorder.stop();
-    recordButton.disabled = false;
-    stopButton.disabled = true;
-    const audioBlob = new Blob(audioChunks);
-    audioChunks = [];
-  
-    const formData = new FormData();
-    formData.append("audio_data", audioBlob);
-    fetch("{% url 'transcribe_audio' %}", {
-      method: "POST",
-      body: formData,
-      headers: {
-        "X-CSRFToken": "{{ csrf_token }}",
-      },
-    })
-    .then(function(response) {
-      return response.json();
-    })
-    .then(function(data) {
-      audioDataInput.value = JSON.stringify(data);
-      transcriptionInput.value = data.transcription;
-    });
-  }
-  </script>
+ 
 </body>
+<script>
+  // get the Record button element
+const recordButton = document.getElementById('record-button');
+
+// get the audio data input element
+const audioDataInput = document.getElementById('audio-data');
+
+// create a new audio context
+const audioContext = new AudioContext();
+
+// create a new media stream source node
+let sourceNode;
+
+// add a click event listener to the Record button
+recordButton.addEventListener('click', async () => {
+  try {
+    // request microphone access
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    // create a new media stream source node from the microphone stream
+    sourceNode = audioContext.createMediaStreamSource(stream);
+
+    // create a new recorder node
+    const recorder = new Recorder(sourceNode);
+
+    // start recording
+    recorder.record();
+
+    // disable the Record button and enable the Stop button
+    recordButton.disabled = true;
+    document.getElementById('stop-button').disabled = false;
+  } catch (err) {
+    console.error('Error accessing microphone:', err);
+  }
+});
+
+// add a click event listener to the Stop button
+document.getElementById('stop-button').addEventListener('click', () => {
+  // stop recording
+  recorder.stop();
+
+  // enable the Record button and disable the Stop button
+  recordButton.disabled = false;
+  document.getElementById('stop-button').disabled = true;
+
+  // export the recorded audio data as a Blob
+  recorder.exportWAV((blob) => {
+    // create a new file reader
+    const reader = new FileReader();
+
+    // add a load event listener to the file reader
+    reader.addEventListener('load', () => {
+      // set the audio data input element's value to the base64-encoded audio data
+      audioDataInput.value = reader.result.split(',')[1];
+    });
+
+    // read the Blob as a data URL
+    reader.readAsDataURL(blob);
+  });
+});
+
+</script>
+
 
 {% endblock content%}
 

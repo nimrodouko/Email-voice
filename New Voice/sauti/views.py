@@ -1,17 +1,14 @@
 
 import io
 import json
+import pyaudio
+import wave
 import requests
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseNotAllowed
 from google.cloud import speech
 from google.oauth2 import service_account
 from .models import Written
-
-
-
-
-
 
 def transcribe_audio(request):
     if request.method == 'POST':
@@ -41,9 +38,7 @@ def transcribe_audio(request):
                 end_time = word.end_time.total_seconds()
                 word_text = word.word
                 results.append((start_time, end_time, word_text))
-
-        written = Written(text=transcript)
-        written.save()
+        
         data = {'transcription': transcript, 'word_timings': results}
         return JsonResponse(data)
     else:
