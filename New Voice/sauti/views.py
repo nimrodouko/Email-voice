@@ -1,8 +1,6 @@
 
 import io
 import json
-import pyaudio
-import wave
 import requests
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseNotAllowed
@@ -11,14 +9,12 @@ from google.oauth2 import service_account
 from .models import Written
 
 def transcribe_audio(request):
-    if request.method == 'POST':
-        credentials = service_account.Credentials.from_service_account_file('friday.json')
+    if request.method == 'POST' and 'audio_data' in request.FILES:
+        audio_file = request.FILES['audio_data']
+        credentials = service_account.Credentials.from_service_account_file('exh.json')
         client = speech.SpeechClient(credentials=credentials)
-
-        data = json.loads(request.body)
-        audio_bytes = io.BytesIO(data['audio_data'].encode('utf-8'))
-
-        audio = speech.RecognitionAudio(content=audio_bytes.read())
+        audio_content = audio_file.read()
+        audio = speech.RecognitionAudio(content=audio_content)
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -39,14 +35,18 @@ def transcribe_audio(request):
                 word_text = word.word
                 results.append((start_time, end_time, word_text))
         
+       
         data = {'transcription': transcript, 'word_timings': results}
         return JsonResponse(data)
     else:
         return HttpResponseNotAllowed(['POST'])
 
 def display_result(request):
-    transcription = request.POST.get('transcription','')
-    return render(request, 'display.html',{'transcription':transcription})
+    return render(request, 'display.html')
+
+def recorder(request):
+    return render(request, 'voice.html')
+
 
 def send_email(request):
     if request.method == 'POST':

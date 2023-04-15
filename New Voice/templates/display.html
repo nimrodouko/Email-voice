@@ -5,26 +5,23 @@
 	
 <head>
 	<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-	<title>Send Email</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+<title>Send Email</title>
 </head>
 {% block content%}
 <body>
 
 	<div class="container-fluid">
+
+      
     
       
-      <button id="record-button">Record</button>
-      <input type="hidden" id="audio-data" name="audio_data">
-      <button id="stop-button" type="submit">Stop</button>
-      
+     
     
     <h1>SEND EMAIL</h1>
-    <form id="audio-form" method="POST" action="{% url 'mail' %}">
+    <form  method="POST" action="{% url 'mail' %}">
       {% csrf_token %}
       <div class="form-group">
         <label for="to">To:</label>
@@ -41,88 +38,8 @@
   
  
 </body>
-<script>
-  // get the Record button element
-const recordButton = document.getElementById('record-button');
-
-  // get the Stop button element
-  const stopButton = document.getElementById('stop-button');
-  // get the transcription text area element
-  const transcriptionText = document.getElementById('transcription-text');
-
-  // create a new audio context
-const audioContext = new AudioContext();
-
-// create a new media stream source node
-let sourceNode;
-// create a new recorder node
-let recorder;
-
-// add a click event listener to the Record button
-recordButton.addEventListener('click', async () => {
-  try {
-    // request microphone access
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-    // create a new media stream source node from the microphone stream
-    sourceNode = audioContext.createMediaStreamSource(stream);
-
-    // create a new recorder node
-    const recorder = new Recorder(sourceNode);
-
-    // start recording
-    recorder.record();
-
-    // disable the Record button and enable the Stop button
-    recordButton.disabled = true;
-    document.getElementById('stop-button').disabled = false;
-  } catch (err) {
-    console.error('Error accessing microphone:', err);
-  }
-});
-
-// add a click event listener to the Stop button
-document.getElementById('stop-button').addEventListener('click', () => {
-  // stop recording
-  recorder.stop();
-
-   // enable the Record button and disable the Stop button
-   recordButton.disabled = false;
-    stopButton.disabled = true;
-
-  // export the recorded audio data as a Blob
-  recorder.exportWAV(async (blob) => {
-      // create a new FormData object and add the audio data to it
-      const formData = new FormData();
-      formData.append('audio_data', blob);
-
-
-      try {
-        // make an HTTP POST request to the server to transcribe the audio data
-        const response = await fetch('/transcribe_audio/', {
-          method: 'POST',
-          body: formData,
-        });
-         // get the transcription data from the response
-         const data = await response.json();
-
-     // update the transcription text area with the transcribed text
-     transcriptionText.value = data.transcription;
-      } catch (err) {
-        console.error('Error transcribing audio:', err);
-      }
-    });
-  });
-</script>
 
 
 {% endblock content%}
 
-
-
-
 </html>
-
-
-
-
