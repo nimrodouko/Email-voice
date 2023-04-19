@@ -1,49 +1,14 @@
-{% block content%}
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Speech to Text</title>
-    <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <meta charset="utf-8">
+    <title>Speech-to-Text</title>
 </head>
-
 <body>
-    <form id="speech-form">
+    <h1>Speech-to-Text</h1>
+    <form method="post">
         {% csrf_token %}
-        <label for="audio-data">Speak into your microphone:</label><br>
-        <input type="file" id="audio-data" name="audio_data" accept="audio/*" capture>
-        <button type="submit">Transcribe</button>
+        <button type="submit">Speak</button>
     </form>
-
-    <textarea id="transcription" rows="10" cols="50" disabled></textarea>
-{% endblock content%}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#speech-form').on('submit', function(event) {
-                event.preventDefault();
-                var form_data = new FormData($('#speech-form')[0]);
-
-                $.ajax({
-                    url: '/transcribe_audio/',
-                    type: 'POST',
-                    data: form_data,
-                    processData: false,
-                    contentType: false,
-                    success: function(data) {
-                        if (data.error) {
-                            $('#transcription').val(data.error);
-                        } else {
-                            $('#transcription').val(data.text);
-                        }
-                    },
-                    error: function() {
-                        $('#transcription').val('Error occurred while processing the transcription.');
-                    }
-                });
-            });
-        });
-    </script>
 </body>
 </html>
