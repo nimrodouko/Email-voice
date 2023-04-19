@@ -10,9 +10,6 @@ from .import speech_to_text
 def display_result(request):
     return render(request, 'display.html')
 
-
-
-
 def index(request):
     if request.method =='POST':
         text = speech_to_text.recognize_speech()
