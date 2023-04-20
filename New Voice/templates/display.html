@@ -16,11 +16,8 @@
 	<div class="container-fluid">
 
       
-    
-      
-     
-    
     <h1>SEND EMAIL</h1>
+    <a href="{% url 'inbox' %}">INBOX</a>
     <form  method="POST" action="{% url 'mail' %}">
       {% csrf_token %}
       <div class="form-group">

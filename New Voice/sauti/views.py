@@ -3,12 +3,14 @@ import io
 import json
 import requests
 
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponse
 from .import speech_to_text
+from .models import Written
 
 def display_result(request):
-    return render(request, 'display.html')
+    to_email = 'to_email'
+    return render(request, 'display.html', {'to_email':to_email})
 
 def index(request):
     if request.method =='POST':
@@ -27,12 +29,20 @@ def send_email(request):
             "mailto": to_email,
             "message": content,
         },timeout=60)
-        return JsonResponse({
-            'status_code': mail.status_code,
-            'response': mail.json()
-        })
+        return redirect('inbox')
     else:
         return JsonResponse({
             'status_code': 405,
             'response': 'Method Not Allowed'
         })
+
+def showinbox(request):
+    
+        
+
+    context ={
+        'object_list':Written.objects.all(),
+        
+        
+    }
+    return render(request, 'inbox.html',context)
