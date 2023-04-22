@@ -16,8 +16,11 @@
     
       
             {%for post in object_list%}
+                <label for="to"><b>To:</b></label>
+                <p>{{post.to_email}}</p>
                 <label for="text"><b>Text:</b></label>
                 <p>{{post.text}}</p>
+                <br>
             {% endfor %}
 
       
