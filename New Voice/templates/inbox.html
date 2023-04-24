@@ -9,11 +9,27 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <title>Inbox</title>
 </head>
+<style>
+    .body{
+        
 
+        position:relative;
+        left:350px;
+        top:300px;
+      
+
+    };
+   
+   
+    
+</style>
 <body>
+    {%if user.is_authenticated %}
     <div class="container">
         <h1>INBOX</h1>
-        <a href="{%url 'logout'%}" style="float: right;text-align: right;">Sign out</a>
+        <a href="{%url 'logout'%}"style="float: right;text-align: right; margin-right:30px;">LOGOUT</a>
+        Welcome  <b>{{request.user.email}}</b>
+        
     
       
             {%for post in object_list%}
@@ -27,6 +43,20 @@
       
 
     </div>
+    {% else %}
+    <div class="body">
+        <div class="card card w-50">
+            <div class="cardtitle">Sign up or Sign in to access your inbox</div>
+            <div class="cardbody">
+                <a href="{%url 'signup' %}">Signup</a> or <a href="{%url 'login'%}">Login</a>
+            </div>
+        </div>
+      
+
+    </div>
+    
+    
+    {% endif %}
    
     
 </body>

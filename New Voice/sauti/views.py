@@ -1,4 +1,3 @@
-
 import io
 import json
 import requests
@@ -18,6 +17,7 @@ def index(request):
     if request.method =='POST':
        
       
+
 
         text = speech_to_text.recognize_speech()
         return render(request,'display.html',{"text":text})

@@ -4,8 +4,13 @@ from django.contrib.auth.forms import UserCreationForm
 
 
 class CustomCreation(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
+      class Meta(UserCreationForm.Meta):
         model = CustomUser
-        fields =('email',)
+        fields =UserCreationForm.Meta.fields +('email',)
+        
+        
+        
+        
+        
 
 
