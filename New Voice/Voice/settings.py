@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts.apps.AccountsConfig',
     'sauti.apps.SautiConfig',
 ]
 
@@ -51,6 +52,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'Voice.urls'
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 TEMPLATES = [
     {
@@ -132,3 +134,5 @@ EMAIL_HOST_PASSWORD="Nimrod02ouko#"
 
 MEDIA_ROOT =  os.path.join(BASE_DIR,'media')
 MEDIA_URL = '/media/'
+
+LOGIN_REDIRECT_URL ='voice'
